@@ -4,6 +4,8 @@ import User from "./model/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "./config.js";
+import Todo from "./model/todoModel.js";
+import { authMiddleware } from "./middleware/authMiddleware.js";
 
 const app = express();
 app.use(express.json());
@@ -45,8 +47,6 @@ app.post('/api/v1/signup', async (req, res) => {
   }
 });
 
-
-
 app.post('/api/v1/login', async (req, res)=> {
 const {email, password} = req.body;
 try {
@@ -73,10 +73,45 @@ try {
     res.status(500).json({message: "server error"})
 }
 })
-app.post('/api/v1/add-todo', (req, res)=> {
 
-})
-app.get('/api/v1/todo', (req, res)=> {
+app.post('/api/v1/add-todo', authMiddleware, async (req, res) => {
+  const { title, description, priority } = req.body;
+  try {
+    if (!title || !description) {
+      return res.status(400).json({ message: "Title and description are required" });
+    }
+
+    const userId = req.user._id;
+
+    const newTodo = await Todo.create({
+      title,
+      description,
+      priority,
+      user: userId
+    });
+
+    res.status(201).json({
+      message: "Todo has been added successfully",
+      newTodo
+    });
+
+  } catch (error) {
+    console.error("Error adding todo:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+app.get('/api/v1/todos',authMiddleware, async (req, res)=> {
+  try {
+    const userId = req.user._id;
+    const todos = await Todo.find({ user: userId }).populate("user", "-password");
+    res.status(200).json({
+      message: "Todos fetched successfully",
+      todos
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
 
 })
 
