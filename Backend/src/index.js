@@ -3,7 +3,7 @@ import connetToDb from "./db.js";
 import User from "./model/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "./config.js";
+import { JWT_SECRET, port } from "./config.js";
 import Todo from "./model/todoModel.js";
 import { authMiddleware } from "./middleware/authMiddleware.js";
 
@@ -115,7 +115,6 @@ app.get('/api/v1/todos',authMiddleware, async (req, res)=> {
 
 })
 
-const port = 8080;
 app.listen(port, ()=> {
     console.log(`app is listening on port ${8080}`);
     connetToDb()
